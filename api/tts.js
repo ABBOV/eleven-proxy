@@ -2,7 +2,7 @@
 import axios from 'axios';
 
 export const config = {
-  runtime: 'nodejs18.x',        // make sure axios & fetch are available
+  runtime: 'nodejs',        // make sure axios & fetch are available
   regions: ['iad1', 'fra1'],    // optional: pick the fastest regions
 };
 
