@@ -3,7 +3,6 @@ import axios from 'axios';
 
 export const config = {
   runtime: 'nodejs',        // make sure axios & fetch are available
-  regions: ['iad1', 'fra1'],    // optional: pick the fastest regions
 };
 
 export default async function handler(req, res) {
