@@ -1,2 +1,7 @@
-{ "name":"eleven-proxy","type":"module",
-  "dependencies":{"express":"^4.19.2","axios":"^1.7.2"} 
+{
+  "name": "eleven-proxy",
+  "type": "module",
+  "dependencies": {
+    "axios": "^1.7.2"
+  }
+}
