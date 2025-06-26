@@ -1,12 +1,16 @@
 // api/tts.js  (NO Express, just export a handler)
 import axios from 'axios';
-
 export default async function handler(req, res) {
+  if (req.method === 'GET') {
+    res.json({ ok: true, usage: 'POST JSON to /tts' });
+    return;
+  }
   if (req.method !== 'POST') {
     res.status(405).send('Method Not Allowed');
     return;
   }
-
+  /* … existing POST logic … */
+}
   const { voice_id, text, voice_settings } = req.body;
 
   try {
