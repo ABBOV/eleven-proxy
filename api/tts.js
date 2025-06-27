@@ -1,29 +1,23 @@
-// api/tts.js  ── Vercel serverless function
 import axios from 'axios';
 
 export const config = {
-  runtime: 'nodejs',        // make sure axios & fetch are available
+  runtime: 'nodejs',
 };
 
 export default async function handler(req, res) {
-  // ──────────────── Allow simple health-check ────────────────
   if (req.method === 'GET') {
-    res.json({ ok: true, usage: 'POST JSON { voice_id, text [,voice_settings] }' });
-    return;
+    return res.json({ ok: true, usage: 'POST JSON { voice_id, text, [voice_settings] }' });
   }
 
-  // ──────────────── Only POST beyond this point ──────────────
   if (req.method !== 'POST') {
-    res.status(405).send('Method Not Allowed');
-    return;
+    return res.status(405).send('Method Not Allowed');
   }
 
   try {
-    const { voice_id, text, voice_settings = {}, with_metadata = false } = req.body;    
+    const { voice_id, text, voice_settings = {} } = req.body;
 
     if (!voice_id || !text) {
-      res.status(400).json({ error: 'voice_id and text are required' });
-      return;
+      return res.status(400).json({ error: 'voice_id and text are required' });
     }
 
     const apiKey = process.env.ELEVEN_API_KEY;
@@ -31,34 +25,34 @@ export default async function handler(req, res) {
       throw new Error('ELEVEN_API_KEY env var not set');
     }
 
-    // Forward request to ElevenLabs
+    // Always request JSON with metadata
     const eleven = await axios.post(
       `https://api.elevenlabs.io/v1/text-to-speech/${voice_id}/stream`,
-      { text, voice_settings, with_metadata },
+      {
+        text,
+        voice_settings,
+        with_metadata: true,
+      },
       {
         headers: {
           'xi-api-key': apiKey,
-          accept: with_metadata ? 'application/json' : 'audio/mpeg',
+          'Accept': 'application/json',
           'Content-Type': 'application/json',
         },
-        responseType: 'arraybuffer',
-      },
+        responseType: 'json',
+      }
     );
-  if (with_metadata) {
-    res.setHeader('Content-Type', 'application/json');
-    res.json(eleven.data);
-  } else {
-    res.setHeader('Content-Type', 'audio/mpeg');
-    res.send(Buffer.from(eleven.data, 'binary'));
-  }
 
-    // Stream MP3 back to caller
-    res.setHeader('Content-Type', 'audio/mpeg');
-    res.send(Buffer.from(eleven.data, 'binary'));
+    // Send a clean JSON response
+    return res.status(200).json(eleven.data);
+
   } catch (err) {
-    console.error(err);
-    res
-      .status(500)
-      .json({ error: { code: 500, message: 'A server error has occurred' } });
+    console.error('Proxy error:', err);
+    return res.status(500).json({
+      error: {
+        code: 500,
+        message: err.message || 'A server error has occurred',
+      },
+    });
   }
 }
