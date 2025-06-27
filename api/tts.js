@@ -27,11 +27,12 @@ export default async function handler(req, res) {
 
     // Always request JSON with metadata
     const eleven = await axios.post(
-      `https://api.elevenlabs.io/v1/text-to-speech/${voice_id}/stream`,
+      `https://api.elevenlabs.io/v1/text-to-speech/${voice_id}`,
       {
         text,
         voice_settings,
         with_metadata: true,
+        output_format: "mp3_44100_128"   // Optional but can force format
       },
       {
         headers: {
