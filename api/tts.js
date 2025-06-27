@@ -19,7 +19,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { voice_id, text, voice_settings = {} } = req.body;
+    const { voice_id, text, voice_settings = {}, with_metadata = false } = req.body;    
 
     if (!voice_id || !text) {
       res.status(400).json({ error: 'voice_id and text are required' });
@@ -34,16 +34,23 @@ export default async function handler(req, res) {
     // Forward request to ElevenLabs
     const eleven = await axios.post(
       `https://api.elevenlabs.io/v1/text-to-speech/${voice_id}/stream`,
-      { text, voice_settings },
+      { text, voice_settings, with_metadata },
       {
         headers: {
           'xi-api-key': apiKey,
-          accept: 'audio/mpeg',
+          accept: with_metadata ? 'application/json' : 'audio/mpeg',
           'Content-Type': 'application/json',
         },
         responseType: 'arraybuffer',
       },
     );
+  if (with_metadata) {
+    res.setHeader('Content-Type', 'application/json');
+    res.json(eleven.data);
+  } else {
+    res.setHeader('Content-Type', 'audio/mpeg');
+    res.send(Buffer.from(eleven.data, 'binary'));
+  }
 
     // Stream MP3 back to caller
     res.setHeader('Content-Type', 'audio/mpeg');
