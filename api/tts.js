@@ -14,7 +14,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { voice_id, text, voice_settings = {} } = req.body;
+    const { voice_id, text, voice_settings = {}, output_format = "mp3_44100_128" } = req.body;
 
     if (!voice_id || !text) {
       return res.status(400).json({ error: 'voice_id and text are required' });
@@ -25,14 +25,12 @@ export default async function handler(req, res) {
       throw new Error('ELEVEN_API_KEY env var not set');
     }
 
-    // Always request JSON with metadata
     const eleven = await axios.post(
-      `https://api.elevenlabs.io/v1/text-to-speech/${voice_id}`,
+      `https://api.elevenlabs.io/v1/text-to-speech/${voice_id}/with-timestamps`,
       {
         text,
         voice_settings,
-        with_metadata: true,
-        output_format: "mp3_44100_128"   // Optional but can force format
+        output_format
       },
       {
         headers: {
@@ -44,13 +42,11 @@ export default async function handler(req, res) {
       }
     );
 
-    // Send a clean JSON response
     res.statusCode = 200;
     res.setHeader('Content-Type', 'application/json; charset=utf-8');
     res.setHeader('Cache-Control', 'no-store');
     res.setHeader('Content-Encoding', 'identity');
     return res.end(JSON.stringify(eleven.data));
-
 
   } catch (err) {
     console.error('Proxy error:', err);
