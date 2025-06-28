@@ -42,11 +42,16 @@ export default async function handler(req, res) {
       }
     );
 
+    const payload = {
+      ...eleven.data,     // all keys from ElevenLabs
+      original_text: text // echo the text you sent
+    };
+
     res.statusCode = 200;
     res.setHeader('Content-Type', 'application/json; charset=utf-8');
     res.setHeader('Cache-Control', 'no-store');
     res.setHeader('Content-Encoding', 'identity');
-    return res.end(JSON.stringify(eleven.data, original_text: text ));
+    return res.end(JSON.stringify(payload));
 
   } catch (err) {
     console.error('Proxy error:', err);
